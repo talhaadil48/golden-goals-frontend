@@ -5,6 +5,18 @@ import { getStudents, addStudent, generateId, getBookings } from '../../lib/stor
 import { Student, Subject, Package, PACKAGE_PRICES, Booking } from '../../lib/types';
 import { Camera, AlertCircle, CheckCircle2, UserPlus, Phone, MapPin, Cake, GraduationCap, X, BookOpen, Star, Clock, CalendarCheck, CalendarX, CalendarClock } from 'lucide-react';
 
+function statusIcon(status: string) {
+  if (status === 'Completed') return <CalendarCheck size={14} className="text-emerald-500" />;
+  if (status === 'Missed') return <CalendarX size={14} className="text-rose-400" />;
+  return <CalendarClock size={14} className="text-[#6EC1C3]" />;
+}
+
+function statusColor(status: string) {
+  if (status === 'Completed') return 'bg-emerald-50 text-emerald-600 border-emerald-200';
+  if (status === 'Missed') return 'bg-rose-50 text-rose-500 border-rose-200';
+  return 'bg-[#6EC1C3]/10 text-[#5AB0B2] border-[#6EC1C3]/30';
+}
+
 // Mock history entries for demonstration (supplements real bookings)
 function getMockHistory(student: Student): Array<{ date: string; subject: string; status: 'Completed' | 'Missed' | 'Upcoming' }> {
   const base: Array<{ date: string; subject: string; status: 'Completed' | 'Missed' | 'Upcoming' }> = [];
@@ -267,16 +279,6 @@ export default function StudentsPage() {
       {selectedStudent && (() => {
         const history = getMockHistory(selectedStudent);
         const realBookings = bookings.filter(b => b.studentId === selectedStudent.id);
-        const statusIcon = (status: string) => {
-          if (status === 'Completed') return <CalendarCheck size={14} className="text-emerald-500" />;
-          if (status === 'Missed') return <CalendarX size={14} className="text-rose-400" />;
-          return <CalendarClock size={14} className="text-[#6EC1C3]" />;
-        };
-        const statusColor = (status: string) => {
-          if (status === 'Completed') return 'bg-emerald-50 text-emerald-600 border-emerald-200';
-          if (status === 'Missed') return 'bg-rose-50 text-rose-500 border-rose-200';
-          return 'bg-[#6EC1C3]/10 text-[#5AB0B2] border-[#6EC1C3]/30';
-        };
         return (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <div className="bg-white/95 backdrop-blur-xl rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-white flex flex-col max-h-[90vh]">

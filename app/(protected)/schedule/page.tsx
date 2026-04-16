@@ -126,7 +126,7 @@ export default function SchedulePage() {
 
             return (
               <div key={slot} className="flex items-center rounded-xl neu-flat overflow-hidden h-11">
-                <div className="px-3 py-2 bg-[rgba(110,193,195,0.08)] text-[#1F2A2E] font-black w-24 flex-shrink-0 text-center text-xs tracking-tight border-r border-[rgba(31,42,46,0.07)] flex items-center justify-center">
+                <div className="px-3 py-2 bg-[#6EC1C3]/8 text-[#1F2A2E] font-black w-24 flex-shrink-0 text-center text-xs tracking-tight border-r border-[#1F2A2E]/7 flex items-center justify-center">
                   {slot}
                 </div>
                 <div className="px-3 flex-1 flex items-center">
