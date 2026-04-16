@@ -112,92 +112,84 @@ export default function SchedulePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+      {/* Scheduler Board — full width, compact slots */}
+      <div className="glass-card rounded-3xl p-4 md:p-6">
+        <h2 className="text-base font-bold mb-3 text-[#5AB0B2] flex items-center gap-2">
+           <Clock size={18} /> Slots for {selectedDate}
+        </h2>
         
-        {/* Scheduler Board */}
-        <div className="xl:col-span-8 glass-card rounded-3xl p-6 md:p-8">
-          <h2 className="text-xl font-bold mb-6 text-[#5AB0B2] flex items-center gap-2">
-             <Clock size={20} /> Slots for {selectedDate}
-          </h2>
-          
-          <div className="flex flex-col gap-4">
-            {TIME_SLOTS.map(slot => {
-              const booking = getBookingForSlot(selectedDate, slot);
-              const student = booking ? students.find(s => s.id === booking.studentId) : null;
-              const isOccupied = !!booking;
+        <div className="flex flex-col gap-1.5">
+          {TIME_SLOTS.map(slot => {
+            const booking = getBookingForSlot(selectedDate, slot);
+            const student = booking ? students.find(s => s.id === booking.studentId) : null;
+            const isOccupied = !!booking;
 
-              return (
-                <div key={slot} className="flex flex-col md:flex-row items-stretch md:items-center rounded-2xl neu-flat overflow-hidden">
-                  <div className="px-6 py-4 bg-[rgba(255,255,255,0.4)] text-[#1F2A2E] font-black w-full md:w-36 flex-shrink-0 text-center tracking-tight border-b md:border-b-0 md:border-r border-[rgba(31,42,46,0.1)] flex items-center justify-center gap-2">
-                    {slot}
-                  </div>
-                  <div className="p-4 flex-1">
-                    {isOccupied && student && booking ? (
-                      <div className="flex flex-col sm:flex-row items-center gap-4 justify-between">
-                        <div className="flex items-center gap-4 w-full sm:w-auto">
-                          <img src={student.imageDataUrl} alt={student.childName} className="w-12 h-12 rounded-xl object-cover neu-inset p-1 bg-white border border-[#E0E6E8]" />
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-[15px] truncate text-[#1F2A2E] leading-tight">{student.childName}</h4>
-                            <div className="flex flex-wrap gap-1 mt-1.5">
-                              {student.subjects.map(sub => (
-                                <span key={sub} className="text-[9px] px-1.5 py-0.5 bg-[#1F2A2E] text-white uppercase font-bold tracking-widest rounded">{sub}</span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0 justify-end">
-                           <span className="font-bold text-[11px] uppercase tracking-wider text-[#D9A441] neu-inset px-3 py-1.5 rounded-lg border border-[#EBC67A]/50 bg-white/50 whitespace-nowrap">
-                            {student.package}
-                           </span>
-                           <button onClick={() => sendReminder(booking, student)} title="Send Reminder" className="neu-flat p-2 text-[#6EC1C3] hover:text-[#5AB0B2] cursor-pointer">
-                             <Send size={16} />
-                           </button>
+            return (
+              <div key={slot} className="flex items-center rounded-xl neu-flat overflow-hidden h-11">
+                <div className="px-3 py-2 bg-[rgba(110,193,195,0.08)] text-[#1F2A2E] font-black w-24 flex-shrink-0 text-center text-xs tracking-tight border-r border-[rgba(31,42,46,0.07)] flex items-center justify-center">
+                  {slot}
+                </div>
+                <div className="px-3 flex-1 flex items-center">
+                  {isOccupied && student && booking ? (
+                    <div className="flex items-center gap-3 w-full justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <img src={student.imageDataUrl} alt={student.childName} className="w-7 h-7 rounded-lg object-cover border border-[#E0E6E8]" />
+                        <span className="font-bold text-sm text-[#1F2A2E] truncate">{student.childName}</span>
+                        <div className="hidden sm:flex gap-1">
+                          {student.subjects.map(sub => (
+                            <span key={sub} className="text-[8px] px-1 py-0.5 bg-[#6EC1C3]/15 text-[#5AB0B2] border border-[#6EC1C3]/30 uppercase font-bold tracking-wider rounded">{sub}</span>
+                          ))}
                         </div>
                       </div>
-                    ) : (
-                      <button 
-                        onClick={() => handleOpenSlot(slot)}
-                        className="cursor-pointer w-full py-3.5 border-2 border-dashed border-[#6EC1C3]/40 text-[#6EC1C3] font-bold rounded-xl hover:bg-[#6EC1C3]/10 hover:border-[#6EC1C3] transition-all duration-200 flex items-center justify-center gap-2 tracking-wide"
-                      >
-                        <UserCheck size={18} /> Assign Student
-                      </button>
-                    )}
-                  </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="font-bold text-[10px] uppercase tracking-wide text-[#D9A441] bg-[#D9A441]/10 border border-[#EBC67A]/40 px-2 py-0.5 rounded-lg whitespace-nowrap hidden sm:block">
+                          {student.package}
+                        </span>
+                        <button onClick={() => sendReminder(booking, student)} title="Send Reminder" className="p-1.5 rounded-lg text-[#6EC1C3] hover:bg-[#6EC1C3]/10 cursor-pointer transition-colors">
+                          <Send size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => handleOpenSlot(slot)}
+                      className="cursor-pointer w-full py-1.5 border border-dashed border-[#6EC1C3]/40 text-[#6EC1C3] text-xs font-bold rounded-lg hover:bg-[#6EC1C3]/10 hover:border-[#6EC1C3] transition-all duration-150 flex items-center justify-center gap-1.5"
+                    >
+                      <UserCheck size={13} /> Assign Student
+                    </button>
+                  )}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
+      </div>
 
-        {/* Policies / Reminders Sidebar */}
-        <div className="xl:col-span-4 flex flex-col gap-6">
-          <div className="glass-card rounded-3xl p-8 border-t-8 border-t-[#D9A441]">
-            <h3 className="text-xl font-bold text-[#D9A441] mb-3 flex items-center gap-2">
-              <BellRing size={20} /> Reminder Policy
+      {/* Policies — moved to bottom */}
+      <div className="glass-card rounded-3xl p-6 border-t-4 border-t-[#D9A441]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-base font-bold text-[#D9A441] mb-2 flex items-center gap-2">
+              <BellRing size={16} /> Reminder Policy
             </h3>
-            <p className="text-[15px] text-[#5F6B6F] mb-6 leading-relaxed">
+            <p className="text-sm text-[#5F6B6F] leading-relaxed">
               Reminders are automatically sent to parents <strong className="text-[#1F2A2E]">48 hours</strong> before the scheduled class using our integrated email system.
             </p>
-            
-            <div className="h-px bg-gradient-to-r from-transparent via-[#EBC67A]/50 to-transparent w-full mb-6"></div>
-            
-            <h3 className="text-xl font-bold text-[#D9A441] mb-3 flex items-center gap-2">
-              <AlertTriangle size={20} /> Cancellation
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-[#D9A441] mb-2 flex items-center gap-2">
+              <AlertTriangle size={16} /> Cancellation Policy
             </h3>
-            <p className="text-[15px] text-[#5F6B6F] mb-6 leading-relaxed">
+            <p className="text-sm text-[#5F6B6F] mb-3 leading-relaxed">
               If cancelled less than <strong className="text-[#1F2A2E]">24 hours</strong> before class, full cancellation charge applies.
             </p>
-            
-            <div className="neu-inset p-5 flex flex-col gap-3">
-              <span className="text-[11px] text-[#9AA5A9] uppercase font-black tracking-widest flex items-center gap-1.5"><Phone size={12}/> Emergency Contact</span>
-              <span className="font-mono text-xl text-[#1F2A2E] font-bold tracking-tight bg-white/50 px-3 py-2 rounded-lg text-center">+971 000 0000</span>
-              <span className="text-xs text-[#5F6B6F] text-center font-medium mt-1 flex items-center justify-center gap-1.5">
-                <Mail size={12} /> Email/Phone accepted
-              </span>
+            <div className="neu-inset p-3 flex items-center justify-between rounded-xl">
+              <span className="text-[11px] text-[#9AA5A9] uppercase font-black tracking-widest flex items-center gap-1.5"><Phone size={11}/> Emergency</span>
+              <span className="font-mono text-sm text-[#1F2A2E] font-bold">+971 000 0000</span>
+              <span className="text-xs text-[#5F6B6F] flex items-center gap-1"><Mail size={11} /> Phone/Email</span>
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Assignment Modal */}
