@@ -1,12 +1,47 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { getStudents, addStudent, generateId } from '../../lib/storage';
-import { Student, Subject, Package, PACKAGE_PRICES } from '../../lib/types';
-import { Camera, AlertCircle, CheckCircle2, UserPlus, Phone, MapPin, Cake, GraduationCap, Mail } from 'lucide-react';
+import { getStudents, addStudent, generateId, getBookings } from '../../lib/storage';
+import { Student, Subject, Package, PACKAGE_PRICES, Booking } from '../../lib/types';
+import { Camera, AlertCircle, CheckCircle2, UserPlus, Phone, MapPin, Cake, GraduationCap, Mail, X, BookOpen, Star, Clock, CalendarCheck, CalendarX, CalendarClock } from 'lucide-react';
+
+function statusIcon(status: string) {
+  if (status === 'Completed') return <CalendarCheck size={14} className="text-emerald-500" />;
+  if (status === 'Missed') return <CalendarX size={14} className="text-rose-400" />;
+  return <CalendarClock size={14} className="text-[#6EC1C3]" />;
+}
+
+function statusColor(status: string) {
+  if (status === 'Completed') return 'bg-emerald-50 text-emerald-600 border-emerald-200';
+  if (status === 'Missed') return 'bg-rose-50 text-rose-500 border-rose-200';
+  return 'bg-[#6EC1C3]/10 text-[#5AB0B2] border-[#6EC1C3]/30';
+}
+
+// Mock history entries for demonstration (supplements real bookings)
+function getMockHistory(student: Student): Array<{ date: string; subject: string; status: 'Completed' | 'Missed' | 'Upcoming' }> {
+  const base: Array<{ date: string; subject: string; status: 'Completed' | 'Missed' | 'Upcoming' }> = [];
+  const today = new Date();
+  student.subjects.forEach((sub, idx) => {
+    // Past completed
+    const past = new Date(today);
+    past.setDate(today.getDate() - (7 + idx * 7));
+    base.push({ date: past.toISOString().split('T')[0], subject: sub, status: 'Completed' });
+    // A missed entry
+    const missed = new Date(today);
+    missed.setDate(today.getDate() - (3 + idx * 5));
+    base.push({ date: missed.toISOString().split('T')[0], subject: sub, status: 'Missed' });
+    // Upcoming
+    const upcoming = new Date(today);
+    upcoming.setDate(today.getDate() + (2 + idx * 3));
+    base.push({ date: upcoming.toISOString().split('T')[0], subject: sub, status: 'Upcoming' });
+  });
+  return base.sort((a, b) => a.date.localeCompare(b.date));
+}
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [parentName, setParentName] = useState('');
@@ -26,6 +61,7 @@ export default function StudentsPage() {
 
   useEffect(() => {
     setStudents(getStudents());
+    setBookings(getBookings());
   }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,6 +124,7 @@ export default function StudentsPage() {
       // email failure is non-blocking
     }
 
+    setBookings(getBookings());
     setSuccess('Student successfully onboarded!');
 
     setParentName(''); setParentPhone(''); setParentEmail(''); setParentAddress('');
@@ -226,20 +263,31 @@ export default function StudentsPage() {
             ) : (
               <div className="flex flex-col gap-4">
                 {students.map(s => (
-                  <div key={s.id} className="neu-flat rounded-2xl p-4 flex gap-4 items-center">
-                    <img src={s.imageDataUrl} alt={s.childName} className="w-14 h-14 rounded-full object-cover neu-inset" />
+                  <button
+                    key={s.id}
+                    onClick={() => setSelectedStudent(s)}
+                    className="neu-flat rounded-2xl p-4 flex gap-4 items-center text-left w-full hover:border-[#6EC1C3] hover:shadow-md transition-all duration-200 cursor-pointer group"
+                  >
+                    <div className="relative flex-shrink-0">
+                      <img src={s.imageDataUrl} alt={s.childName} className="w-14 h-14 rounded-full object-cover neu-inset ring-2 ring-[#6EC1C3]/20 group-hover:ring-[#6EC1C3]/50 transition-all" />
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#D9A441] rounded-full flex items-center justify-center text-white text-[9px] font-bold shadow">
+                        {s.childAge}
+                      </div>
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-[15px] truncate text-[#1F2A2E]">{s.childName} <span className="font-normal text-xs text-[#9AA5A9]">({s.childAge}y)</span></h4>
+                      <h4 className="font-bold text-[15px] truncate text-[#1F2A2E] group-hover:text-[#5AB0B2] transition-colors">{s.childName}</h4>
+                      <p className="text-xs text-[#9AA5A9] truncate">{s.parentName}</p>
                       <div className="flex flex-wrap gap-1.5 mt-1.5">
                         {s.subjects.map(sub => (
-                          <span key={sub} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#6EC1C3] text-white opacity-90 tracking-wide uppercase">{sub}</span>
+                          <span key={sub} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#6EC1C3]/15 text-[#5AB0B2] border border-[#6EC1C3]/30 tracking-wide uppercase">{sub}</span>
                         ))}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <span className="font-black text-xs text-[#D9A441] neu-inset px-2.5 py-1 rounded-lg border border-[#EBC67A]/50 whitespace-nowrap">{s.package}</span>
+                    <div className="text-right flex-shrink-0">
+                      <span className="font-black text-xs text-[#D9A441] neu-inset px-2.5 py-1 rounded-lg border border-[#EBC67A]/50 whitespace-nowrap block">{s.package}</span>
+                      <span className="text-[10px] text-[#9AA5A9] mt-1 block">tap to view</span>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -247,6 +295,90 @@ export default function StudentsPage() {
         </div>
 
       </div>
+
+      {/* Student Detail Modal */}
+      {selectedStudent && (() => {
+        const history = getMockHistory(selectedStudent);
+        const realBookings = bookings.filter(b => b.studentId === selectedStudent.id);
+        return (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+            <div className="bg-white/95 backdrop-blur-xl rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-white flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="bg-gradient-to-br from-[#6EC1C3] to-[#5AB0B2] p-6 text-white relative flex-shrink-0">
+                <button onClick={() => setSelectedStudent(null)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all cursor-pointer">
+                  <X size={16} />
+                </button>
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <img src={selectedStudent.imageDataUrl} alt={selectedStudent.childName} className="w-20 h-20 rounded-2xl object-cover border-2 border-white/50 shadow-lg" />
+                    <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-[#D9A441] rounded-full flex items-center justify-center text-white text-xs font-bold shadow border-2 border-white">
+                      {selectedStudent.childAge}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-black text-2xl tracking-tight">{selectedStudent.childName}</h3>
+                    <p className="opacity-80 text-sm mt-0.5 flex items-center gap-1.5">
+                      <GraduationCap size={13} /> {selectedStudent.schoolName}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {selectedStudent.subjects.map(sub => (
+                        <span key={sub} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/20 border border-white/30 tracking-wide uppercase">{sub}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="overflow-y-auto flex-1 p-6 flex flex-col gap-5">
+                {/* Parent Info */}
+                <div className="neu-flat rounded-2xl p-4 flex flex-col gap-2">
+                  <span className="text-[11px] font-black tracking-widest text-[#9AA5A9] uppercase flex items-center gap-1.5"><Star size={11} /> Parent Info</span>
+                  <p className="font-bold text-[#1F2A2E]">{selectedStudent.parentName}</p>
+                  <p className="text-sm text-[#5F6B6F] flex items-center gap-1.5"><Phone size={13} /> {selectedStudent.parentPhone}</p>
+                  <p className="text-sm text-[#5F6B6F] flex items-center gap-1.5"><MapPin size={13} /> {selectedStudent.parentAddress}</p>
+                </div>
+
+                {/* Package */}
+                <div className="flex items-center justify-between neu-inset rounded-2xl p-4">
+                  <div className="flex items-center gap-2 text-[#5F6B6F] font-semibold text-sm">
+                    <BookOpen size={15} /> Package
+                  </div>
+                  <span className="font-black text-[#D9A441] text-sm border border-[#EBC67A]/50 bg-[#D9A441]/5 rounded-xl px-3 py-1">{selectedStudent.package} — {PACKAGE_PRICES[selectedStudent.package]} AED</span>
+                </div>
+
+                {/* Real bookings */}
+                {realBookings.length > 0 && (
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[11px] font-black tracking-widest text-[#9AA5A9] uppercase flex items-center gap-1.5"><Clock size={11} /> Scheduled Sessions</span>
+                    {realBookings.map(b => (
+                      <div key={b.id} className="flex items-center justify-between neu-flat rounded-xl px-4 py-2.5">
+                        <span className="text-sm font-semibold text-[#1F2A2E]">{b.date}</span>
+                        <span className="text-sm text-[#5F6B6F]">{b.timeSlot}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${statusColor('Upcoming')}`}>Upcoming</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* History */}
+                <div className="flex flex-col gap-2">
+                  <span className="text-[11px] font-black tracking-widest text-[#9AA5A9] uppercase flex items-center gap-1.5"><CalendarCheck size={11} /> Session History</span>
+                  <div className="flex flex-col gap-2">
+                    {history.map((h, i) => (
+                      <div key={i} className="flex items-center gap-3 neu-flat rounded-xl px-4 py-2.5">
+                        {statusIcon(h.status)}
+                        <span className="text-sm text-[#5F6B6F] w-24 flex-shrink-0">{h.date}</span>
+                        <span className="text-sm font-semibold text-[#1F2A2E] flex-1">{h.subject}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${statusColor(h.status)}`}>{h.status}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
