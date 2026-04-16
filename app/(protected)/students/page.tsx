@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getStudents, addStudent, generateId } from '../../lib/storage';
 import { Student, Subject, Package, PACKAGE_PRICES } from '../../lib/types';
-import { Camera, AlertCircle, CheckCircle2, UserPlus, Phone, MapPin, Cake, GraduationCap } from 'lucide-react';
+import { Camera, AlertCircle, CheckCircle2, UserPlus, Phone, MapPin, Cake, GraduationCap, Mail } from 'lucide-react';
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -11,6 +11,7 @@ export default function StudentsPage() {
 
   const [parentName, setParentName] = useState('');
   const [parentPhone, setParentPhone] = useState('');
+  const [parentEmail, setParentEmail] = useState('');
   const [parentAddress, setParentAddress] = useState('');
   const [childName, setChildName] = useState('');
   const [childAge, setChildAge] = useState('');
@@ -46,7 +47,7 @@ export default function StudentsPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -62,7 +63,7 @@ export default function StudentsPage() {
 
     const newStudent: Student = {
       id: generateId(),
-      parentName, parentPhone, parentAddress,
+      parentName, parentPhone, parentEmail, parentAddress,
       childName, childAge: parseInt(childAge, 10), childDob,
       schoolName, subjects: selectedSubjects, package: selectedPackage,
       imageDataUrl: imagePreview,
@@ -71,9 +72,25 @@ export default function StudentsPage() {
 
     addStudent(newStudent);
     setStudents(getStudents());
+
+    try {
+      await fetch('/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: parentEmail,
+          subject: 'Student Registration Confirmation – Golden Goals',
+          text: `Dear ${parentName},\n\nYour child ${childName} has been successfully registered at Golden Goals.\n\nPackage: ${selectedPackage}\nSubjects: ${selectedSubjects.join(', ')}\n\nThank you for choosing Golden Goals!`,
+          html: `<p>Dear <strong>${parentName}</strong>,</p><p>Your child <strong>${childName}</strong> has been successfully registered at Golden Goals.</p><ul><li><strong>Package:</strong> ${selectedPackage}</li><li><strong>Subjects:</strong> ${selectedSubjects.join(', ')}</li></ul><p>Thank you for choosing Golden Goals!</p>`,
+        }),
+      });
+    } catch {
+      // email failure is non-blocking
+    }
+
     setSuccess('Student successfully onboarded!');
 
-    setParentName(''); setParentPhone(''); setParentAddress('');
+    setParentName(''); setParentPhone(''); setParentEmail(''); setParentAddress('');
     setChildName(''); setChildAge(''); setChildDob(''); setSchoolName('');
     setSelectedSubjects([]); setSelectedPackage('1 Week'); setImagePreview('');
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -119,6 +136,10 @@ export default function StudentsPage() {
                 <div className="relative">
                   <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9AA5A9]" />
                   <input required placeholder="Phone Number" value={parentPhone} onChange={e => setParentPhone(e.target.value)} className="neu-inset w-full pl-10 pr-3.5 py-3.5 text-sm outline-none" />
+                </div>
+                <div className="relative">
+                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9AA5A9]" />
+                  <input required type="email" placeholder="Email Address" value={parentEmail} onChange={e => setParentEmail(e.target.value)} className="neu-inset w-full pl-10 pr-3.5 py-3.5 text-sm outline-none" />
                 </div>
                 <div className="relative sm:col-span-2">
                   <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9AA5A9]" />

@@ -13,6 +13,7 @@ export interface Student {
   // Parent
   parentName: string;
   parentPhone: string;
+  parentEmail: string;
   parentAddress: string;
   // Child
   childName: string;
