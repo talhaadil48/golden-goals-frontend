@@ -68,7 +68,7 @@ export default function SchedulePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: 'test@example.com', // Normally student.parentEmail
+          to: student.parentEmail, // Normally student.parentEmail
           subject: `Golden Goals Reminder - ${student.childName}`,
           text: `Dear ${student.parentName},\n\nThis is a gentle reminder that your child, ${student.childName}, has a class scheduled on ${booking.date} at ${booking.timeSlot}.\n\nPlease contact us 24 hours in advance if you need to cancel.\n\nBest regards,\nGolden Goals Team`
         })

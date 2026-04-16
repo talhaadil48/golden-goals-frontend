@@ -88,14 +88,6 @@ export default function StudentsPage() {
     setError('');
     setSuccess('');
 
-    if (selectedSubjects.length !== 3) {
-      setError('Exactly 3 subjects must be selected.');
-      return;
-    }
-    if (!imagePreview) {
-      setError('Please upload a child photo.');
-      return;
-    }
 
     const newStudent: Student = {
       id: generateId(),
